@@ -1,0 +1,242 @@
+﻿{% extends "buttons_base.html" %}
+{% block head %}
+<title>Video control</title>
+<style>
+	body {
+		display: block;
+	}
+
+	button {
+		display: block;
+		float: left;
+		text-align: center;
+		text-decoration: none;
+		width: 18vw;
+		padding: 0;
+		height: 12vh;
+		border-radius: 5px;
+		background-color: #c6b3ff;
+	}
+
+	.main-btns {
+		max-height: 50vh;
+	}
+
+	.grid-btns {
+		display: grid;
+		float: left;
+	}
+
+	.touch-bar {
+		margin: 1vh 1vw;
+		border: solid black 1px;
+		border-radius: 8px;
+		width: 73vw;
+		height: 39vh;
+		float: right;
+	}
+
+	.lh {
+		line-height: 50px;
+	}
+</style>
+<script type="text/javascript" src="/js/hammer.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="main-btns">
+	<button class="f-s-5" data-keys="shift+p">
+		Prev Vid
+	</button>
+	<button class="f-s-5" data-keys="j">
+		-10s
+	</button>
+	<button class="f-s-5 lh" data-keys="space">
+		⏸
+	</button>
+	<button class="f-s-6" data-keys="l">
+		+10s
+	</button>
+	<button class="f-s-6" data-keys="shift+n">
+		Next Vid
+	</button>
+	<button class="f-s-10 lh" data-keys="ctrl+t">
+		+
+	</button>
+	<button class="f-s-10 lh" data-keys="alt+d;alt+enter">
+		⎘
+	</button>
+	<button class="f-s-4 lh" data-keys="up">
+		▲Vol
+	</button>
+	<button class="f-s-10 lh" data-keys="f">
+		{% if browser == 'safari' %}
+		✣
+		{% else %}
+		⛶
+		{% endif %}
+	</button>
+	<button class="f-s-15 lh" data-keys="enter">
+		↵
+	</button>
+	<button class="f-s-10 lh" data-keys="alt+left">
+		←
+	</button>
+	<button class="f-s-4 lh" data-keys="left">
+		◀-5s
+	</button>
+	<button class="f-s-4 lh" data-keys="down">
+		▼Vol
+	</button>
+	<button class="f-s-4 lh" data-keys="right">
+		▶+5s
+	</button>
+	<button class="f-s-10 lh" data-keys="alt+right">
+		→
+	</button>
+	<button class="f-s-10 lh" data-keys="ctrl+w">
+		×
+	</button>
+	<button class="f-s-10 lh" data-keys="ctrl+r">
+		↺
+	</button>
+	<button class="f-s-10 lh" data-keys="ctrl+shift+t">
+		✝
+	</button>
+	<button class="f-s-5" data-cmd="chrome.exe --profile-directory=Default">
+		Andr
+	</button>
+	<button class="f-s-5" data-cmd="chrome.exe --profile-directory=&quot;Profile 1&quot;">
+		Kate
+	</button>
+</div>
+<div>
+	<div class="grid-btns">
+		<button class="f-s-5" data-keys="ctrl+tab">
+			Next tab
+		</button>
+		<button class="f-s-10 lh" data-keys="volumeup">
+			🔊
+		</button>
+		<button class="f-s-10 lh" data-keys="volumedown">
+			🔉
+		</button>
+	</div>
+	<div id="touch-bar" class="touch-bar"></div>
+	<!--<canvas id="touch-bar" class="touch-bar">
+		Your browser does not support canvas element.
+	</canvas>-->
+</div>
+<script type="text/javascript">
+	"use strict";
+	//const touchBar = new TouchBar('touch-bar', 75);
+	const touchBarEl = document.getElementById('touch-bar');
+
+	const touchBar = new Hammer(touchBarEl);
+	['press', 'pan', 'swipe'].forEach(n => touchBar.remove(n));
+
+	touchBar.add(new Hammer.Pan({ event: 'scroll', pointers: 2, direction: Hammer.DIRECTION_HORIZONTAL }));
+	touchBar.add(new Hammer.Pan({ event: 'move', direction: Hammer.DIRECTION_ALL }));
+
+	const guestures = { click: null, doubleClick: null, prevDoubleClick: 0, moves: [], scrolls: [] }
+	const copyMove = ({ deltaX, deltaY, timestamp, deltaTime }) => ({ deltaX, deltaY, timestamp, deltaTime });
+
+	const onMoveT = (ev) => guestures.moves.push(copyMove(ev));
+	const onScroll = () => guestures.scrolls.push(copyMove(ev));
+	const onClickT = () => {
+		if (guestures.doubleClick === null)
+			guestures.click = {};
+	}
+	const onDoubleClickT = () => {
+		guestures.doubleClick = {};
+		guestures.click = null;
+
+	}
+	const tapSets = { time: 150, interval: 200 };
+	touchBar.get('tap').set(tapSets);
+	touchBar.get('doubletap').set(tapSets);
+
+	touchBar.on("tap", onClickT);
+	touchBar.on("doubletap", onDoubleClickT);
+	//touchBar.on("scroll", onMoveT);
+	touchBar.on("move", onMoveT);
+
+	const dispathMoveTime = 100;
+	const touchMoveScale = 0.25, touchTime = 0.005;
+
+	const dispatherMove = () => {
+		const start_dispatch = new Date().getTime();
+		if (guestures.moves.length > 0) {
+			let deltaX = 0., deltaY = 0.;
+			while (guestures.moves.length !== 0) {
+				const m = guestures.moves.pop();
+				deltaX += m.deltaX;
+				deltaY += m.deltaY;
+			}
+			post(`/move?deltaX=${touchMoveScale * deltaX}&deltaY=${touchMoveScale * deltaY}&duration=${touchTime}`)
+		}
+
+		const curDispathTime = dispathMoveTime - (new Date().getTime() - start_dispatch);
+
+		if (curDispathTime <= 3) {
+			dispatherMove();
+			return;
+		}
+
+		setTimeout(dispatherMove, curDispathTime);
+	}
+	dispatherMove();
+
+	const dispathTime = 200;
+	const dispather = () => {
+		const start_dispatch = new Date().getTime();
+		if (guestures.doubleClick !== null) {
+			post('/click?count=2');
+			guestures.doubleClick = null;
+			guestures.prevDoubleClick = new Date().getTime();
+		}
+		else if (guestures.click !== null && (new Date().getTime() - guestures.prevDoubleClick) > 5000) {
+			post('/click');
+			guestures.click = null;
+		}
+		const curDispathTime = dispathTime - (new Date().getTime() - start_dispatch);
+
+		if (curDispathTime <= 3) {
+			dispather();
+			return;
+		}
+
+		setTimeout(dispather, curDispathTime);
+	}
+	dispather();
+
+	{% if browser == 'safari' %}
+	let lastTouchEnd = 0;
+	document.addEventListener('touchend', function (event) {
+		const now = (new Date()).getTime();
+		if (now - lastTouchEnd <= 300) {
+			event.preventDefault();
+		}
+		lastTouchEnd = now;
+	}, false);
+	{% endif %}
+
+	function postWithDelay(delayLabel, action, dilay) {
+		const now = new Date().getTime();
+		const prevD = dilays[delayLabel];
+		if (!prevD || now - now > dilay) {
+			dilays[delayLabel] = curD;
+			post(action);
+			return;
+		}
+	}
+
+	function post(action) {
+		if (!action)
+			return;
+
+		const requests = new XMLHttpRequest();
+		requests.open("POST", action);
+		requests.send();
+	}
+</script>
+{% endblock %}

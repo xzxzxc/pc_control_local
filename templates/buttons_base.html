@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="utf-8" />
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0' />
+	<style>
+	{% for i in range(20) %}
+	.f-s-{{ i }} {
+		font-size: {{ 100 + 15 * (i + 1) }}%;
+	}
+	{% endfor %}
+	</style>
+	<script type="text/javascript" src="/js/buttons.js"></script>
+	{% block head %}{% endblock %}
+</head>
+<body>
+	{% block content %}{% endblock %}
+</body>
+</html>

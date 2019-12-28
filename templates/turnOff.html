@@ -1,0 +1,15 @@
+﻿{% extends "buttons_base.html" %}
+{% block head %}
+<title>Turn off</title>
+<style>
+	button {
+		width: 95vw;
+		height: 40vh;
+		font-size: xx-large;
+	}
+</style>
+{% endblock %}
+{% block content %}
+<button data-cmd="shutdown %2Fs">Turn off</button>
+<button data-cmd="rundll32.exe user32.dll,LockWorkStation">Lock</button>
+{% endblock %}

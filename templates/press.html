@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <title>Press</title>
+</head>
+<body>
+  <div>
+    <form method="post">
+      <ul>
+      {% for k_group in chunks(keys, 4) %}
+        <li style="list-style-type: none; ">
+          {% for key in k_group %}
+          <button type="submit" formaction="/press?keys={{ key }}" 
+            style="width: {{ 85.0 / len(k_group) }}%;padding: 2em 5em;">
+            {{ key }}
+          </button>
+          {% endfor %}
+        </li>
+      {% endfor %}
+      </ul>
+      <ul>
+      {% for a_group in chunks(alphabet, 6) %}
+        <li style="list-style-type: none; ">
+          {% for letter in a_group %}
+          <button type="submit" formaction="/press?keys={{ letter }}" 
+            style="width: {{ 90.0 / len(a_group) }}%;padding: 3em 5em;">
+            {{ letter }}
+          </button>
+          {% endfor %}
+        </li>
+      {% endfor %}
+      </ul>
+    </form>
+  </div>
+</body>
+</html>
