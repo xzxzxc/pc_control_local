@@ -48,12 +48,17 @@ def click():
 	x, y = request.args.get('x'), request.args.get('y')
 	x, y = (float(x) if x else None, float(y) if y else None)
 
-	pyautogui.click(x=x, y=y, clicks=int(request.args.get('count') or '1'), interval=float(request.args.get('interval') or '1'))
+	pyautogui.click(x=x, y=y, clicks=int(request.args.get('count') or '1'), interval=float(request.args.get('interval') or '0.05'), button=request.args.get('button') or 'left')
 	return 'ok'
 
 @app.route('/move', methods=['POST'])
 def move():
 	Timer(0, move_inner, [request.args.get('deltaX'), request.args.get('deltaY'), request.args.get('duration')]).start()
+	return 'ok'
+
+@app.route('/scroll', methods=['POST'])
+def scroll():
+	pyautogui.scroll(int(float(request.args.get('deltaY'))))
 	return 'ok'
 
 @app.route('/press', methods=['POST'])

@@ -5,7 +5,6 @@
 	body {
 		display: block;
 	}
-
 	button {
 		display: block;
 		float: left;
@@ -13,29 +12,26 @@
 		text-decoration: none;
 		width: 18vw;
 		padding: 0;
-		height: 12vh;
+		height: 10vh;
 		border-radius: 5px;
-		background-color: #c6b3ff;
+		background-color: #f2f2f2;
+		filter: grayscale(100%);
 	}
-
 	.main-btns {
 		max-height: 50vh;
 	}
-
 	.grid-btns {
 		display: grid;
 		float: left;
 	}
-
 	.touch-bar {
 		margin: 1vh 1vw;
 		border: solid black 1px;
 		border-radius: 8px;
 		width: 73vw;
-		height: 39vh;
+		height: 48vh;
 		float: right;
 	}
-
 	.lh {
 		line-height: 50px;
 	}
@@ -53,7 +49,7 @@
 	<button class="f-s-5 lh" data-keys="space">
 		⏸
 	</button>
-	<button class="f-s-6" data-keys="l">
+	<button class="f-s-5" data-keys="l">
 		+10s
 	</button>
 	<button class="f-s-6" data-keys="shift+n">
@@ -65,7 +61,7 @@
 	<button class="f-s-10 lh" data-keys="alt+d;alt+enter">
 		⎘
 	</button>
-	<button class="f-s-4 lh" data-keys="up">
+	<button class="f-s-3 lh" data-keys="up">
 		▲Vol
 	</button>
 	<button class="f-s-10 lh" data-keys="f">
@@ -75,19 +71,19 @@
 		⛶
 		{% endif %}
 	</button>
-	<button class="f-s-15 lh" data-keys="enter">
-		↵
+	<button class="f-s-2" data-cmd="chrome.exe https://www.youtube.com/">
+		You Tube
 	</button>
 	<button class="f-s-10 lh" data-keys="alt+left">
 		←
 	</button>
-	<button class="f-s-4 lh" data-keys="left">
+	<button class="f-s-3 lh" data-keys="left">
 		◀-5s
 	</button>
-	<button class="f-s-4 lh" data-keys="down">
+	<button class="f-s-3 lh" data-keys="down">
 		▼Vol
 	</button>
-	<button class="f-s-4 lh" data-keys="right">
+	<button class="f-s-3 lh" data-keys="right">
 		▶+5s
 	</button>
 	<button class="f-s-10 lh" data-keys="alt+right">
@@ -128,76 +124,52 @@
 </div>
 <script type="text/javascript">
 	"use strict";
-	//const touchBar = new TouchBar('touch-bar', 75);
 	const touchBarEl = document.getElementById('touch-bar');
 
-	const touchBar = new Hammer(touchBarEl);
-	['press', 'pan', 'swipe'].forEach(n => touchBar.remove(n));
+	const touchBarMg = new Hammer.Manager(touchBarEl);
 
-	touchBar.add(new Hammer.Pan({ event: 'scroll', pointers: 2, direction: Hammer.DIRECTION_HORIZONTAL }));
-	touchBar.add(new Hammer.Pan({ event: 'move', direction: Hammer.DIRECTION_ALL }));
+	touchBarMg.add(new Hammer.Tap({ event: 'doubletap', taps: 2, threshold: 5, posThreshold: 25 }));
+	touchBarMg.add(new Hammer.Tap({ event: 'twoFingersTap', pointers: 2, threshold: 5, posThreshold: 25 }));
+	touchBarMg.add(new Hammer.Tap({ event: 'singletap', threshold: 5, posThreshold: 25 }));
+	touchBarMg.add(new Hammer.Pan({ event: 'scroll', pointers: 2, threshold: 3, direction: Hammer.DIRECTION_HORIZONTAL }));
+	touchBarMg.add(new Hammer.Pan({ event: 'move', direction: Hammer.DIRECTION_ALL }));
 
-	const guestures = { click: null, doubleClick: null, prevDoubleClick: 0, moves: [], scrolls: [] }
-	const copyMove = ({ deltaX, deltaY, timestamp, deltaTime }) => ({ deltaX, deltaY, timestamp, deltaTime });
+	// we want to recognize this simulatenous, so a quadrupletap will be detected even while a tap has been recognized.
+	touchBarMg.get('doubletap').recognizeWith('singletap');
+	// we only want to trigger a tap, when we don't have detected a doubletap
+	touchBarMg.get('singletap').requireFailure('doubletap');
 
-	const onMoveT = (ev) => guestures.moves.push(copyMove(ev));
-	const onScroll = () => guestures.scrolls.push(copyMove(ev));
-	const onClickT = () => {
-		if (guestures.doubleClick === null)
-			guestures.click = {};
-	}
-	const onDoubleClickT = () => {
-		guestures.doubleClick = {};
-		guestures.click = null;
+	const guestures = { click: null, doubleClick: null, rightClick: null, prevDoubleClick: 0, moves: [], scrolls: [] };
+	const copyMove = ({ deltaX, deltaY, timeStamp, deltaTime }) => ({ deltaX, deltaY, timeStamp, deltaTime });
 
-	}
-	const tapSets = { time: 150, interval: 200 };
-	touchBar.get('tap').set(tapSets);
-	touchBar.get('doubletap').set(tapSets);
+	touchBarMg.on("singletap", () => guestures.click = {});
+	touchBarMg.on("twoFingersTap", () => guestures.rightClick = {});
+	touchBarMg.on("doubletap", () => guestures.doubleClick = {});
+	touchBarMg.on("scroll", (ev) => guestures.scrolls.push(copyMove(ev)));
+	touchBarMg.on("move", (ev) => guestures.moves.push(copyMove(ev)));
 
-	touchBar.on("tap", onClickT);
-	touchBar.on("doubletap", onDoubleClickT);
-	//touchBar.on("scroll", onMoveT);
-	touchBar.on("move", onMoveT);
-
-	const dispathMoveTime = 100;
-	const touchMoveScale = 0.25, touchTime = 0.005;
-
-	const dispatherMove = () => {
-		const start_dispatch = new Date().getTime();
-		if (guestures.moves.length > 0) {
-			let deltaX = 0., deltaY = 0.;
-			while (guestures.moves.length !== 0) {
-				const m = guestures.moves.pop();
-				deltaX += m.deltaX;
-				deltaY += m.deltaY;
-			}
-			post(`/move?deltaX=${touchMoveScale * deltaX}&deltaY=${touchMoveScale * deltaY}&duration=${touchTime}`)
-		}
-
-		const curDispathTime = dispathMoveTime - (new Date().getTime() - start_dispatch);
-
-		if (curDispathTime <= 3) {
-			dispatherMove();
-			return;
-		}
-
-		setTimeout(dispatherMove, curDispathTime);
-	}
-	dispatherMove();
-
-	const dispathTime = 200;
+	const dispathTime = 100, moveScale = 0.25, moveTime = 0.005, scrollScale = 0.4;
 	const dispather = () => {
 		const start_dispatch = new Date().getTime();
 		if (guestures.doubleClick !== null) {
 			post('/click?count=2');
-			guestures.doubleClick = null;
-			guestures.prevDoubleClick = new Date().getTime();
 		}
-		else if (guestures.click !== null && (new Date().getTime() - guestures.prevDoubleClick) > 5000) {
+		else if (guestures.rightClick !== null) {
+			post('/click?button=right');
+		}
+		else if (guestures.click !== null) {
 			post('/click');
-			guestures.click = null;
 		}
+		else if (guestures.moves.length > 0) {
+			const delta = { x: 0, y: 0 };
+			guestures.moves.forEach((m) => { delta.x += m.deltaX; delta.y += m.deltaY; });
+			post(`/move?deltaX=${moveScale * delta.x}&deltaY=${moveScale * delta.y}&duration=${moveTime}`);
+		}
+		else if (guestures.scrolls.length > 0) {
+			const deltaY = guestures.scrolls.reduce((pv, cm) => pv + cm.deltaY, 0);
+			post(`/scroll?deltaY=${scrollScale * deltaY}`);
+		}
+		guestures.scrolls = []; guestures.moves = []; guestures.click = null; guestures.doubleClick = null; guestures.rightClick = null;
 		const curDispathTime = dispathTime - (new Date().getTime() - start_dispatch);
 
 		if (curDispathTime <= 3) {
@@ -209,7 +181,15 @@
 	}
 	dispather();
 
+	function post(action) {
+		if (!action)
+			return;
+		const requests = new XMLHttpRequest();
+		requests.open("POST", action);
+		requests.send();
+	}
 	{% if browser == 'safari' %}
+	// disable scaling for safary
 	let lastTouchEnd = 0;
 	document.addEventListener('touchend', function (event) {
 		const now = (new Date()).getTime();
@@ -219,24 +199,5 @@
 		lastTouchEnd = now;
 	}, false);
 	{% endif %}
-
-	function postWithDelay(delayLabel, action, dilay) {
-		const now = new Date().getTime();
-		const prevD = dilays[delayLabel];
-		if (!prevD || now - now > dilay) {
-			dilays[delayLabel] = curD;
-			post(action);
-			return;
-		}
-	}
-
-	function post(action) {
-		if (!action)
-			return;
-
-		const requests = new XMLHttpRequest();
-		requests.open("POST", action);
-		requests.send();
-	}
 </script>
 {% endblock %}
