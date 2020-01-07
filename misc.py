@@ -45,7 +45,7 @@ def set_reg(name, value):
 		winreg.CloseKey(registry_key)
 		return True
 	except WindowsError as e:
-		print(e)
+		print(str(e))
 		return False
 
 def get_reg(name):
@@ -54,8 +54,8 @@ def get_reg(name):
 		value, regtype = winreg.QueryValueEx(registry_key, name)
 		winreg.CloseKey(registry_key)
 		return value
-	except WindowsError:
-		print(e)
+	except WindowsError as e:
+		print(str(e))
 		return None
 
 
