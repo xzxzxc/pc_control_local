@@ -16,6 +16,11 @@
 		border-radius: 5px;
 		background-color: #f2f2f2;
 		filter: grayscale(100%);
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		-o-user-select: none;
 	}
 	.main-btns {
 		max-height: 50vh;
@@ -43,13 +48,13 @@
 	<button class="f-s-5" data-keys="shift+p">
 		Prev Vid
 	</button>
-	<button class="f-s-5" data-keys="j">
+	<button class="f-s-5" data-keys="j" data-interval="250">
 		-10s
 	</button>
 	<button class="f-s-5 lh" data-keys="space">
 		⏸
 	</button>
-	<button class="f-s-5" data-keys="l">
+	<button class="f-s-5" data-keys="l" data-interval="250">
 		+10s
 	</button>
 	<button class="f-s-6" data-keys="shift+n">
@@ -61,7 +66,7 @@
 	<button class="f-s-10 lh" data-keys="alt+d;alt+enter">
 		⎘
 	</button>
-	<button class="f-s-3 lh" data-keys="up">
+	<button class="f-s-3 lh" data-keys="up" data-interval="250">
 		▲Vol
 	</button>
 	<button class="f-s-10 lh" data-keys="f">
@@ -77,13 +82,13 @@
 	<button class="f-s-10 lh" data-keys="alt+left">
 		←
 	</button>
-	<button class="f-s-3 lh" data-keys="left">
+	<button class="f-s-3 lh" data-keys="left" data-interval="250">
 		◀-5s
 	</button>
-	<button class="f-s-3 lh" data-keys="down">
+	<button class="f-s-3 lh" data-keys="down" data-interval="250">
 		▼Vol
 	</button>
-	<button class="f-s-3 lh" data-keys="right">
+	<button class="f-s-3 lh" data-keys="right" data-interval="250">
 		▶+5s
 	</button>
 	<button class="f-s-10 lh" data-keys="alt+right">
@@ -98,11 +103,11 @@
 	<button class="f-s-10 lh" data-keys="ctrl+shift+t">
 		✝
 	</button>
-	<button class="f-s-5" data-cmd="chrome.exe --profile-directory=Default">
-		Andr
+	<button class="f-s-3" data-cmd="chrome.exe --profile-directory=Default">
+		Open prof1
 	</button>
-	<button class="f-s-5" data-cmd="chrome.exe --profile-directory=&quot;Profile 1&quot;">
-		Kate
+	<button class="f-s-3" data-cmd="chrome.exe --profile-directory=&quot;Profile 1&quot;">
+		Open prof2
 	</button>
 </div>
 <div>
@@ -110,10 +115,10 @@
 		<button class="f-s-5" data-keys="ctrl+tab">
 			Next tab
 		</button>
-		<button class="f-s-10 lh" data-keys="volumeup">
+		<button class="f-s-10 lh" data-keys="volumeup" data-interval="150">
 			🔊
 		</button>
-		<button class="f-s-10 lh" data-keys="volumedown">
+		<button class="f-s-10 lh" data-keys="volumedown" data-interval="150">
 			🔉
 		</button>
 	</div>
@@ -124,8 +129,11 @@
 </div>
 <script type="text/javascript">
 	"use strict";
-	const touchBarEl = document.getElementById('touch-bar');
+	const dispatchContainer = {};
+	const clearContainer = (container) => { container.scrolls = []; container.moves = []; container.click = null; container.doubleClick = null; container.rightClick = null; };
+	const copyMove = ({ deltaX, deltaY, timeStamp, deltaTime }) => ({ deltaX, deltaY, timeStamp, deltaTime });
 
+	const touchBarEl = document.getElementById('touch-bar');
 	const touchBarMg = new Hammer.Manager(touchBarEl);
 
 	touchBarMg.add(new Hammer.Tap({ event: 'doubletap', taps: 2, threshold: 5, posThreshold: 25 }));
@@ -139,55 +147,47 @@
 	// we only want to trigger a tap, when we don't have detected a doubletap
 	touchBarMg.get('singletap').requireFailure('doubletap');
 
-	const guestures = { click: null, doubleClick: null, rightClick: null, prevDoubleClick: 0, moves: [], scrolls: [] };
-	const copyMove = ({ deltaX, deltaY, timeStamp, deltaTime }) => ({ deltaX, deltaY, timeStamp, deltaTime });
+	touchBarMg.on("singletap", () => dispatchContainer.click = {});
+	touchBarMg.on("twoFingersTap", () => dispatchContainer.rightClick = {});
+	touchBarMg.on("doubletap", () => dispatchContainer.doubleClick = {});
+	touchBarMg.on("scroll", (ev) => dispatchContainer.scrolls.push(copyMove(ev)));
+	touchBarMg.on("move", (ev) => dispatchContainer.moves.push(copyMove(ev)));
 
-	touchBarMg.on("singletap", () => guestures.click = {});
-	touchBarMg.on("twoFingersTap", () => guestures.rightClick = {});
-	touchBarMg.on("doubletap", () => guestures.doubleClick = {});
-	touchBarMg.on("scroll", (ev) => guestures.scrolls.push(copyMove(ev)));
-	touchBarMg.on("move", (ev) => guestures.moves.push(copyMove(ev)));
-
-	const dispathTime = 100, moveScale = 0.25, moveTime = 0.005, scrollScale = 0.4;
-	const dispather = () => {
+	const dispathTime = 100, moveScale = 0.25, moveTime = 0.005, scrollScale = 0.4, btnTime = 50;
+	const dispather = (container) => {
 		const start_dispatch = new Date().getTime();
-		if (guestures.doubleClick !== null) {
+		if (container.doubleClick !== null) {
 			post('/click?count=2');
 		}
-		else if (guestures.rightClick !== null) {
+		else if (container.rightClick !== null) {
 			post('/click?button=right');
 		}
-		else if (guestures.click !== null) {
+		else if (container.click !== null) {
 			post('/click');
 		}
-		else if (guestures.moves.length > 0) {
+		else if (container.moves.length > 0) {
 			const delta = { x: 0, y: 0 };
-			guestures.moves.forEach((m) => { delta.x += m.deltaX; delta.y += m.deltaY; });
+			container.moves.forEach((m) => { delta.x += m.deltaX; delta.y += m.deltaY; });
 			post(`/move?deltaX=${moveScale * delta.x}&deltaY=${moveScale * delta.y}&duration=${moveTime}`);
 		}
-		else if (guestures.scrolls.length > 0) {
-			const deltaY = guestures.scrolls.reduce((pv, cm) => pv + cm.deltaY, 0);
+		else if (container.scrolls.length > 0) {
+			const deltaY = container.scrolls.reduce((pv, cm) => pv + cm.deltaY, 0);
 			post(`/scroll?deltaY=${scrollScale * deltaY}`);
 		}
-		guestures.scrolls = []; guestures.moves = []; guestures.click = null; guestures.doubleClick = null; guestures.rightClick = null;
+		clearContainer(container);
+
 		const curDispathTime = dispathTime - (new Date().getTime() - start_dispatch);
 
 		if (curDispathTime <= 3) {
-			dispather();
+			dispather(container);
 			return;
 		}
 
-		setTimeout(dispather, curDispathTime);
+		setTimeout(dispather, curDispathTime, container);
 	}
-	dispather();
+	clearContainer(dispatchContainer);
+	dispather(dispatchContainer);
 
-	function post(action) {
-		if (!action)
-			return;
-		const requests = new XMLHttpRequest();
-		requests.open("POST", action);
-		requests.send();
-	}
 	{% if browser == 'safari' %}
 	// disable scaling for safary
 	let lastTouchEnd = 0;

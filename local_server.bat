@@ -1,2 +1,3 @@
+set /p IP=<ip.txt
 set FLASK_APP=local_server.py
-flask run --host=192.168.0.100
+flask run --host=%IP%

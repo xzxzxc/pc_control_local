@@ -339,7 +339,7 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-js/touchbar.js
 js/hammer.min.js
 cur.cur
 log.txt
+ip.txt

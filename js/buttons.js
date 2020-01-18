@@ -1,51 +1,94 @@
 "use strict";
-
-document.addEventListener('DOMContentLoaded', function () {
-	const buttons = Array.from(document.getElementsByTagName('button'));
-
-	buttons.forEach((button) => button.onclick = onCLick);
-});
-
-String.prototype.replaceAll = function (search, replace) {
-	return this.split(search).join(replace);
-}
-
-function onCLick() {
-	const action = this.getAttribute('data-action');
-	if (action) {
-		post(action);
-		return;
+!function () {
+	const dispatchContainer = { dispatched_once: true };
+	const clearContainer = (container) => { container.ended = true; }
+	const setBtn = (container, btn) => {
+		container.action = btn.getAttribute('data-action'); container.cmd = btn.getAttribute('data-cmd');
+		container.keys = btn.getAttribute('data-keys'); container.interval = btn.getAttribute('data-interval');
+		container.ended = false; container.start = new Date().getTime();
+		container.dispatched_once = false;
+	};
+	const replaceAll = (str, search, replace) => str.split(search).join(replace);
+	const getAction = (container) => {
+		if (container.action)
+			return container.action;
+		if (container.cmd)
+			return '/cmd/' + container.cmd;
+		if (container.keys)
+			return `/press?keys=${replaceAll(container.keys, '+', '%2B')}`;
+		return null;
 	}
-
-	const cmd = this.getAttribute('data-cmd');
-	if (cmd) {
-		post('/cmd/' + cmd);
-		return;
+	const touchStart = function () {
+		setBtn(dispatchContainer, this);
 	}
-
-	const keys = this.getAttribute('data-keys');
-	if (!keys) {
-		return;
+	const touchEnd = function () {
+		clearContainer(dispatchContainer);
 	}
-	let repeat = this.getAttribute('data-repeat');
-	let keys_sets;
-	if (repeat !== null) {
-		keys_sets = (keys + ',').repeat(repeat).split(',');
-	}
-	else {
-		keys_sets = [keys];
-	}
-	keys_sets.forEach((keys) => {
-		const action = `/press?keys=${keys.replaceAll('+', '%2B')}`;
-		post(action);
+	document.addEventListener('DOMContentLoaded', function () {
+		Array.from(document.getElementsByTagName('button'))
+			.forEach((button) => {
+				button.addEventListener('touchstart', touchStart);
+				button.addEventListener('touchend', touchEnd);
+				button.addEventListener('touchcancel', touchEnd);
+			});
 	});
-}
+	const suportsRepeats = (act) => act.startsWith('/press?keys');
+	const dispathTime = 100, defInterval = 1000;
+	const dispatchFunc = ({ container, start_dispatch }) => {
+		if (container.ended && container.dispatched_once)
+			return;
 
-function post(action) {
-	if (!action)
-		return;
+		const action = getAction(container);
+		if (!action)
+			return;
 
-	const requests = new XMLHttpRequest();
-	requests.open("POST", action);
-	requests.send();
-}
+		let interval = container.interval;
+		interval = interval ? interval : defInterval;
+		const diff = start_dispatch - container.start;
+
+		let repeats = 0;
+		if (diff > interval) {
+			container.start = start_dispatch;
+			repeats = Math.floor(diff / interval);
+		}
+		else if (!container.dispatched_once) {
+			repeats = 1;
+		}
+
+		if (repeats === 0)
+			return;
+
+		container.dispatched_once = true;
+		if (repeats === 1) {
+			post(action);
+			return;
+		}
+		if (suportsRepeats(action)) {
+			post(action + '&repeats=' + repeats);
+		}
+		else {
+			for (let j = 0; j < repeats; j++) {
+				post(action);
+			}
+		}
+	}
+	const dispather = (container) => {
+		const start_dispatch = new Date().getTime();
+
+		try {
+			dispatchFunc({ container, start_dispatch });
+		}
+		catch (error) {
+			console.log(error);
+		}
+
+		const curDispathTime = dispathTime - (new Date().getTime() - start_dispatch);
+		if (curDispathTime <= 3) {
+			dispather(container);
+			return;
+		}
+		setTimeout(dispather, curDispathTime, container);
+	}
+	clearContainer(dispatchContainer);
+	dispather(dispatchContainer);
+}();
