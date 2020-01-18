@@ -16,7 +16,7 @@
 - Download hammer.min.js into js folder (possible url: https://hammerjs.github.io/dist/hammer.min.js)
 - Bind your computer MAC address to IP in router settings, and create ip.txt file containing binded ip in project folder
 
-Firs steps could be done by typing next commands in command line window (cmd in windows start or run menu):
+Firs steps could be done by typing next commands in command line window (type 'cmd' in windows start menu):
 
 ```
 D:
@@ -29,7 +29,7 @@ setx path "%path%;C:\Program Files (x86)\Google\Chrome\Application"
 
 > To add programm to autostart - create icon of local_server.bat and place it to "%AppData%\Microsoft\Windows\Start Menu\Programs\Startup" folder
 
-> Host must ocntains only latin symbols - flask wsgsi limitation (((
+> Host name must ocntains only latin symbols - flask wsgsi limitation (((
 
 ## For developers:
 >  Note that templates\buttons_base.html mus be encoded as UTF-8 without BOM, otherwise <!doctype> would be ignored
