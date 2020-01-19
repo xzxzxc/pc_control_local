@@ -154,15 +154,14 @@
 	touchBarMg.on("move", (ev) => dispatchContainer.moves.push(copyMove(ev)));
 
 	const dispathTime = 100, moveScale = 0.25, moveTime = 0.005, scrollScale = 0.4, btnTime = 50;
-	const dispather = (container) => {
-		const start_dispatch = new Date().getTime();
-		if (container.doubleClick !== null) {
+	const dispatchFunc = (container, startTime, clearContainer, post) => {
+		if (container.doubleClick) {
 			post('/click?count=2');
 		}
-		else if (container.rightClick !== null) {
+		else if (container.rightClick) {
 			post('/click?button=right');
 		}
-		else if (container.click !== null) {
+		else if (container.click) {
 			post('/click');
 		}
 		else if (container.moves.length > 0) {
@@ -175,18 +174,9 @@
 			post(`/scroll?deltaY=${scrollScale * deltaY}`);
 		}
 		clearContainer(container);
-
-		const curDispathTime = dispathTime - (new Date().getTime() - start_dispatch);
-
-		if (curDispathTime <= 3) {
-			dispather(container);
-			return;
-		}
-
-		setTimeout(dispather, curDispathTime, container);
 	}
 	clearContainer(dispatchContainer);
-	dispather(dispatchContainer);
+	Dispatcher.registerModule(dispatchContainer, dispatchFunc, dispathTime, clearContainer, post);
 
 	{% if browser == 'safari' %}
 	// disable scaling for safary

@@ -35,8 +35,7 @@ setx path "%path%;C:\Program Files (x86)\Google\Chrome\Application"
 >  Note that templates\buttons_base.html mus be encoded as UTF-8 without BOM, otherwise <!doctype> would be ignored
 
 ### TODO tasks:
-- create dispatcher.js
-- log fron errors in log.txt
 - add typing ability
+- log fron errors in log.txt
 - add ability to open custom url in browser
 - add ability to setup chrome users count

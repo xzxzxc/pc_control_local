@@ -96,5 +96,9 @@ def add_header(r):
 	r.headers["Expires"] = "0"
 	return r
 
+@app.route('/favicon.ico')
+def favicon():
+	return send_from_directory('', 'favicon.ico', mimetype='image/webp')
+
 if DEBUG:
 	app.run(socket.gethostbyname(socket.gethostname()))

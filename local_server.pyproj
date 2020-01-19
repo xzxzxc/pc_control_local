@@ -29,6 +29,7 @@
   <ItemGroup>
     <Content Include="js\buttons.js" />
     <Content Include="js\communication.js" />
+    <Content Include="js\dispatcher.js" />
     <Content Include="js\hammer.min.js" />
     <Content Include="local_server.bat" />
     <Content Include="log.txt" />
