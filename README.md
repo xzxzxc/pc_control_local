@@ -32,7 +32,7 @@ setx path "%path%;C:\Program Files (x86)\Google\Chrome\Application"
 > Host name must ocntains only latin symbols - flask wsgsi limitation (((
 
 ## For developers:
->  Note that templates\buttons_base.html mus be encoded as UTF-8 without BOM, otherwise <!doctype> would be ignored
+>  Note that templates\buttons_base.html must be encoded as UTF-8 without BOM, otherwise <!doctype> would be ignored
 
 ### TODO tasks:
 - add typing ability
