@@ -1,4 +1,4 @@
-# pc_control_local
+# PC Control Local
 ### Control your PC from mobile device in local network
 
 ##### Requierments:
