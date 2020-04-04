@@ -1,8 +1,15 @@
 # coding=utf-8
-from flask import Flask, redirect, url_for, render_template, request, send_from_directory
-import os, datetime, pyautogui, sys, string, logging, time, socket, subprocess, re
-from threading import Timer
-from misc import user32Dll, allowed_keys, set_reg, get_reg, chunks, update_cur
+try:
+	from flask import Flask, redirect, url_for, render_template, request, send_from_directory, send_file, jsonify, redirect
+	import os, datetime, pyautogui, sys, string, logging, time, socket, subprocess, re, threading, pyperclip, pyscreeze, hashlib, io, base64
+	from misc import user32Dll, allowed_keys, set_reg, get_reg, chunks, update_cur
+	from win32api import GetSystemMetrics
+	from PIL import Image
+	from typing import Dict, Tuple, Sequence
+except:
+	subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
+	print(subprocess.run(['.\local_server.bat'], shell=True))
+	exit()
 
 DEBUG = __name__ == '__main__'
 log_level = logging.DEBUG if DEBUG else logging.ERROR
@@ -26,7 +33,7 @@ def move_internal(deltaX, deltaY, duration):
 	pyautogui.moveRel(deltaX, deltaY, duration=duration)
 	for flag_name in flag_names:
 		set_reg(flag_name, norm_values[flag_name])
-	Timer(0.8, update_cur).start()
+	threading.Timer(0.8, update_cur).start()
 
 def press_internal(keys, repeats):
 	key_sets = keys.split(';')
@@ -34,6 +41,30 @@ def press_internal(keys, repeats):
 		for k_set in key_sets:
 			pyautogui.hotkey(*k_set.split('+'))
 			time.sleep(.01)
+
+hextypeKey = 'altleft' if os.name == 'nt' else 'optionleft'
+hexToText = lambda x: '+' + x if os.name == 'nt' else x
+type_lock = threading.Lock()
+def type_internal(text):
+	with type_lock:
+		ords = [ord(c) for c in text]
+		if all(o < 128 for o in ords):
+			pyautogui.write(text)
+			return
+
+		pyperclip.copy(text)
+		pyautogui.hotkey("ctrl", "v")
+		return
+
+		#for o in ords:
+		#	hex_txt = hexToText('%04x' % o)
+		#	pyautogui.keyDown(hextypeKey)
+		#	time.sleep(0.01)
+		#	pyautogui.press([x for x in hex_txt])
+		#	time.sleep(0.01)
+		#	pyautogui.keyUp(hextypeKey)
+
+get_data = lambda r: r.json or r.data
 
 def try_redirecct_back():
 	back_url = request.args.get('prev_page')
@@ -43,6 +74,8 @@ def try_redirecct_back():
 
 @app.route('/template/<path:path>', methods=['GET'])
 def template_get(path):
+	if path == 'video_control':
+		return redirect('/video_control', 301)
 	temp_name = '%s.html' % path
 	args_str = request.args.get('args')
 	if args_str is not None:
@@ -51,9 +84,9 @@ def template_get(path):
 		return render_template(temp_name, **args)
 	return render_template(temp_name)
 
-@app.route('/cmd/<path:command>', methods=['POST'])
-def cmd_post(command):
-	subprocess.run(command, shell=True)
+@app.route('/cmd', methods=['POST'])
+def cmd_post():
+	subprocess.run(get_data(request), shell=True)
 	return 'ok'
 
 @app.route('/click', methods=['POST'])
@@ -66,7 +99,7 @@ def click():
 
 @app.route('/move', methods=['POST'])
 def move():
-	Timer(0, move_internal, [request.args.get('deltaX'), request.args.get('deltaY'), request.args.get('duration')]).start()
+	threading.Timer(0, move_internal, [request.args.get('deltaX'), request.args.get('deltaY'), request.args.get('duration')]).start()
 	return 'ok'
 
 @app.route('/scroll', methods=['POST'])
@@ -76,29 +109,96 @@ def scroll():
 
 @app.route('/press', methods=['POST'])
 def press_post():
-	Timer(0, press_internal, [request.args.get('keys'), request.args.get('repeats')]).start()
+	threading.Timer(0, press_internal, [get_data(request), request.args.get('repeats')]).start()
 	return 'ok'
 
-@app.route('/js/<path:path>')
-def send_js(path):
-	return send_from_directory('js', path)
+@app.route('/type', methods=['POST'])
+def type_post():
+	threading.Timer(0, type_internal, [get_data(request)]).start()
+	return 'ok'
 
-@app.route('/css/<path:path>')
-def send_css(path):
-	return send_from_directory('css', path)
+cur_w = 30
+cur_h = 30
+cur_img = Image.open('cur.cur')
+cur_img.thumbnail((cur_w, cur_h), Image.ANTIALIAS)
+screen_w = GetSystemMetrics(0)
+screen_h = GetSystemMetrics(1)
+@app.route('/screnshot', methods=['GET'])
+def screnshot_get():
+	cur_x, cur_y = pyautogui.position()
+	delta_x, delta_y = int(request.args.get('delta_x') or '500'), int(request.args.get('delta_y') or '500')
+	scale = float(request.args.get('scale') or '1')
+	scaled_delta_x = int(scale * delta_x)
+	scaled_delta_y = int(scale * delta_y)
+	x = min(max(0, cur_x - scaled_delta_x), screen_w - 2 * scaled_delta_x)
+	y = min(max(0, cur_y - scaled_delta_y), screen_h - 2 * scaled_delta_y)
+	img = pyscreeze.screenshot(region=(x, y, 2 * scaled_delta_x, 2 * scaled_delta_y))
 
-@app.after_request
-def add_header(r):
-	if not DEBUG:
-		return r
-	r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-	r.headers["Pragma"] = "no-cache"
-	r.headers["Expires"] = "0"
-	return r
+	if cur_x <= scaled_delta_x:
+		img_cur_x = cur_x
+	elif cur_x >= screen_w - scaled_delta_x:
+		img_cur_x = 2 * scaled_delta_x + cur_x - screen_w
+	else:
+		img_cur_x = scaled_delta_x
+
+	if cur_y <= scaled_delta_y:
+		img_cur_y = cur_y
+	elif cur_y >= screen_h - scaled_delta_y:
+		img_cur_y = 2 * scaled_delta_y + cur_y - screen_h
+	else:
+		img_cur_y = scaled_delta_y
+
+	img.paste(cur_img, (img_cur_x, img_cur_y), cur_img)
+
+	if scale > 1:
+		img.thumbnail((2 * delta_x, 2 * delta_y), Image.ANTIALIAS)
+
+	rawBytes = io.BytesIO()
+	img.save(rawBytes, "JPEG")
+	rawBytes.seek(0)
+	img_base64 = base64.b64encode(rawBytes.read())
+	return jsonify({'img': 'data:image/png;base64, ' + img_base64.decode('UTF-8')})
+
+@app.route('/video_control', methods=['GET'])
+def video_control_get():
+	return render_template('video_control.html', browser=request.user_agent.browser, get_hashed_path=get_hashed_path)
+
+hashed_paths_cache: Dict[str, str] = {}
+files_cache: Dict[str, str] = {}
+def calculate_md5_and_store(path: str):
+	bytes = open(path,'rb').read()
+	file = bytes.decode('UTF-8')
+	md5 = hashlib.md5(bytes).hexdigest()
+	paths_list = list(os.path.splitext(path))
+	paths_list[1] = '_' + md5 + paths_list[1]
+	hashed_path = ''.join(paths_list)
+	hashed_paths_cache[path] = hashed_path
+	files_cache[hashed_path] = file
+
+@app.route('/<dir_name>/<fname>')
+def send_js(dir_name, fname):
+	path = dir_name + '/' + fname
+	file = files_cache[path]
+	return file
+
+def get_hashed_path(path):
+	if len(path) == 0:
+		raise Exception('path must be not empty')
+	if path[0] == '/':
+		path = path[1:]
+	if not path in hashed_paths_cache:
+		calculate_md5_and_store(path)
+	return hashed_paths_cache[path]
 
 @app.route('/favicon.ico')
 def favicon():
-	return send_from_directory('', 'favicon.ico', mimetype='image/webp')
+	return send_file('favicon.ico', mimetype='image/webp')
+
+@app.route('/apple-touch-icon.png')
+def apple_touch_icon():
+	return send_file('apple-touch-icon.png', mimetype='image/png')
+
+
 
 if DEBUG:
 	app.run(socket.gethostbyname(socket.gethostname()))

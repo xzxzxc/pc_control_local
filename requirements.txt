@@ -1,2 +1,5 @@
 flask
 pyautogui
+pyscreeze
+Pillow
+pywin32

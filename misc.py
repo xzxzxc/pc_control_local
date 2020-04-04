@@ -37,10 +37,10 @@ allowed_keys=['\t', '\n', '\r', ' ', '!', '"', '#', '$', '%', '&', "'", '(',
 
 REG_PATH = r"Control Panel\Cursors"
 
-def set_reg(name, value):
+def set_reg(name, value, reg_path=None):
 	try:
 		winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
-		registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_WRITE)
+		registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path or REG_PATH, 0, winreg.KEY_WRITE)
 		winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
 		winreg.CloseKey(registry_key)
 		return True
@@ -48,9 +48,9 @@ def set_reg(name, value):
 		print(str(e))
 		return False
 
-def get_reg(name):
+def get_reg(name, reg_path=None):
 	try:
-		registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+		registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path or REG_PATH, 0, winreg.KEY_READ)
 		value, regtype = winreg.QueryValueEx(registry_key, name)
 		winreg.CloseKey(registry_key)
 		return value
@@ -58,6 +58,11 @@ def get_reg(name):
 		print(str(e))
 		return None
 
+enable_hex_reg = 'Control Panel\Input Method'
+enable_hex_reg_key = 'EnableHexNumpad'
+enable_hex_reg_val = get_reg(enable_hex_reg_key, enable_hex_reg)
+if enable_hex_reg_val is None or enable_hex_reg_val != '1':
+	set_reg(enable_hex_reg_key, '1', enable_hex_reg)
 
 def chunks(lst, n):
 	for i in range(0, len(lst), n):

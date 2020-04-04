@@ -13,7 +13,6 @@
 - Install requirments
 - Add chrome to PATH
 - Download some contrast cursor, name it cur.cur and place it to project folder (pc_control_local)
-- Download hammer.min.js into js folder (possible url: https://hammerjs.github.io/dist/hammer.min.js)
 - Bind your computer MAC address to IP in router settings, and create ip.txt file containing binded ip in project folder
 
 Firs steps could be done by typing next commands in command line window (type 'cmd' in windows start menu):

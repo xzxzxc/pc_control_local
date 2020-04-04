@@ -31,6 +31,7 @@
     <Content Include="js\communication.js" />
     <Content Include="js\dispatcher.js" />
     <Content Include="js\hammer.min.js" />
+    <Content Include="js\typing.js" />
     <Content Include="local_server.bat" />
     <Content Include="log.txt" />
     <Content Include="README.md" />
