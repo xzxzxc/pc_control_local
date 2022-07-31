@@ -128,8 +128,9 @@
 		<input id="typing-input" class="control-small-item" />
 		<input id="href-input" class="control-small-item" />
 	</div>
-	<div id="touch-bar" class="touch-bar">
-		<img id="touch-bar-img"/>
+	<div id="touch-bar" class="touch-bar" style="position: relative;">
+		<img id="touch-bar-img" style="position: absolute;" />
+		<img id="touch-bar-cursor" src="/img/cur.png" style="position: relative;"/>
 	</div>
 </div>
 <script type="text/javascript">
@@ -139,7 +140,17 @@
 	const copyMove = ({ deltaX, deltaY, timeStamp, deltaTime }) => ({ deltaX, deltaY, timeStamp, deltaTime });
 	const moveDispathInterval = 100, moveScale = 0.25, moveDuration = 0.005, scrollScale = 0.4;
 	const typingDispathInterval = 75;
-	const updateScreenshotInterval = 200;
+	const updateScreenshotInterval = 100;
+
+	const screenShotScale = 2;
+
+	const touchBarEl = document.getElementById('touch-bar');
+	const touchBarImg = document.getElementById('touch-bar-img');
+	const touchBarCur = document.getElementById('touch-bar-cursor');
+
+	const touchBarWidth = touchBarEl.clientWidth;
+	const touchBarHeight = touchBarEl.clientHeight;
+
 	let textTyper, hrefTyper;
 	let active = true;
 
@@ -151,7 +162,7 @@
 		active = false;
 	});
 
-	const touchBarEl = document.getElementById('touch-bar');
+
 	document.addEventListener('DOMContentLoaded', () => {
 		// touchbar staff
 		const touchBarMg = new Hammer.Manager(touchBarEl);
@@ -221,13 +232,24 @@
 	const updateTouchBarImg = async (container, startTime, touchBarImg, touchBarEl) => {
 		if (!active)
 			return;
-		var screenshot = await get(`/screnshot?scale=3&` +
-			`delta_x=${Math.trunc(touchBarEl.clientWidth / 2)}&delta_y=${Math.trunc(touchBarEl.clientHeight / 2)}`);
+		var screenshot = await get(`/screnshot?` +
+			`width=${Math.trunc(screenShotScale * touchBarEl.clientWidth)}&heigth=${Math.trunc(screenShotScale * touchBarEl.clientHeight)}`);
 		if (screenshot === null)
 			return;
 		touchBarImg.setAttribute('src', screenshot['img']);
+		//const scale = 1 / (2 * screenShotScale);
+		//touchBarImg.setAttribute('style',
+		//	`-webkit-transform: scale(${scale}); -moz-transform: scale(${scale}); -ms-transform: scale(${scale
+		//	}); -o-transform: scale(${scale}); transform: scale(${scale});`);
+		//touchBarImg.setAttribute('width', 100 / (2 * screenShotScale) + '%');
+		//touchBarImg.setAttribute('height', 100 / (2 * screenShotScale) + '%');
+		touchBarImg.setAttribute('width', touchBarEl.clientWidth + 'px');
+		touchBarImg.setAttribute('height', touchBarEl.clientHeight + 'px');
+		touchBarCur.setAttribute('style', 'position: relative; left: '
+			+ (screenshot['cur_x'] / (screenShotScale)) + 'px; top: '
+			+ (screenshot['cur_y'] / (screenShotScale)) + 'px');
 	}
-	const touchBarImg = document.getElementById('touch-bar-img');
+
 	Dispatcher.registerModule(dispatchContainer, updateTouchBarImg, updateScreenshotInterval, touchBarImg, touchBarEl);
 
 	{% if browser == 'safari' %}

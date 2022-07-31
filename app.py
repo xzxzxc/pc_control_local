@@ -1,15 +1,23 @@
 # coding=utf-8
 try:
 	from flask import Flask, redirect, url_for, render_template, request, send_from_directory, send_file, jsonify, redirect
-	import os, datetime, pyautogui, sys, string, logging, time, socket, subprocess, re, threading, pyperclip, pyscreeze, hashlib, io, base64
+	import os, datetime, pyautogui, sys, string, logging, time, socket, subprocess, re, threading, pyperclip, pyscreeze, \
+		hashlib, io, base64, win32gui, win32ui,win32con, win32api
 	from misc import user32Dll, allowed_keys, set_reg, get_reg, chunks, update_cur
 	from win32api import GetSystemMetrics
+	from werkzeug.serving import WSGIRequestHandler
 	from PIL import Image
 	from typing import Dict, Tuple, Sequence
 except:
+	try:
+		import subprocess
+	except:
+		pass
 	subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
 	print(subprocess.run(['.\local_server.bat'], shell=True))
 	exit()
+
+WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
 DEBUG = __name__ == '__main__'
 log_level = logging.DEBUG if DEBUG else logging.ERROR
@@ -76,6 +84,10 @@ def try_redirecct_back():
 def template_get(path):
 	if path == 'video_control':
 		return redirect('/video_control', 301)
+	elif path == 'turnOff':
+		return redirect('/turn_off', 301)
+	elif path == 'turn_off':
+		return redirect('/turn_off', 301)
 	temp_name = '%s.html' % path
 	args_str = request.args.get('args')
 	if args_str is not None:
@@ -117,51 +129,74 @@ def type_post():
 	threading.Timer(0, type_internal, [get_data(request)]).start()
 	return 'ok'
 
-cur_w = 30
-cur_h = 30
-cur_img = Image.open('cur.cur')
-cur_img.thumbnail((cur_w, cur_h), Image.ANTIALIAS)
+
 screen_w = GetSystemMetrics(0)
 screen_h = GetSystemMetrics(1)
 @app.route('/screnshot', methods=['GET'])
 def screnshot_get():
+	#start = time.time_ns()
 	cur_x, cur_y = pyautogui.position()
-	delta_x, delta_y = int(request.args.get('delta_x') or '500'), int(request.args.get('delta_y') or '500')
-	scale = float(request.args.get('scale') or '1')
-	scaled_delta_x = int(scale * delta_x)
-	scaled_delta_y = int(scale * delta_y)
-	x = min(max(0, cur_x - scaled_delta_x), screen_w - 2 * scaled_delta_x)
-	y = min(max(0, cur_y - scaled_delta_y), screen_h - 2 * scaled_delta_y)
-	img = pyscreeze.screenshot(region=(x, y, 2 * scaled_delta_x, 2 * scaled_delta_y))
+	width, heigth = int(request.args.get('width') or '500'), int(request.args.get('heigth') or '500')
+	delta_x, delta_y = int(width / 2), int(heigth / 2)
 
-	if cur_x <= scaled_delta_x:
+	x = min(max(0, cur_x - delta_x), screen_w - width)
+	y = min(max(0, cur_y - delta_y), screen_h - heigth)
+
+	#start = time.time_ns()
+
+	try:
+		hwnd = win32gui.GetDesktopWindow()
+		wDC = win32gui.GetWindowDC(hwnd)
+		dcObj=win32ui.CreateDCFromHandle(wDC)
+		cDC=dcObj.CreateCompatibleDC()
+		dataBitMap = win32ui.CreateBitmap()
+		dataBitMap.CreateCompatibleBitmap(dcObj, width, heigth)
+		cDC.SelectObject(dataBitMap)
+		cDC.BitBlt((0, 0),(width, heigth) , dcObj, (x, y), win32con.SRCCOPY)
+
+		bmpinfo = dataBitMap.GetInfo()
+		bmpstr = dataBitMap.GetBitmapBits(True)
+		img = Image.frombuffer('RGB', (bmpinfo['bmWidth'], bmpinfo['bmHeight']), bmpstr, 'raw', 'BGRX', 0, 1)
+	except:
+		logging.error('win api error: ' + win32api.GetLastError())
+		# Free Resources
+		dcObj.DeleteDC()
+		cDC.DeleteDC()
+		win32gui.ReleaseDC(hwnd, wDC)
+		win32gui.DeleteObject(dataBitMap.GetHandle())
+		raise
+
+	#print((time.time_ns() - start) / 1000000)
+
+	if cur_x <= delta_x:
 		img_cur_x = cur_x
-	elif cur_x >= screen_w - scaled_delta_x:
-		img_cur_x = 2 * scaled_delta_x + cur_x - screen_w
+	elif cur_x >= screen_w - delta_x:
+		img_cur_x = width + cur_x - screen_w
 	else:
-		img_cur_x = scaled_delta_x
+		img_cur_x = delta_x
 
-	if cur_y <= scaled_delta_y:
+	if cur_y <= delta_y:
 		img_cur_y = cur_y
-	elif cur_y >= screen_h - scaled_delta_y:
-		img_cur_y = 2 * scaled_delta_y + cur_y - screen_h
+	elif cur_y >= screen_h - delta_y:
+		img_cur_y = heigth + cur_y - screen_h
 	else:
-		img_cur_y = scaled_delta_y
-
-	img.paste(cur_img, (img_cur_x, img_cur_y), cur_img)
-
-	if scale > 1:
-		img.thumbnail((2 * delta_x, 2 * delta_y), Image.ANTIALIAS)
+		img_cur_y = delta_y
 
 	rawBytes = io.BytesIO()
 	img.save(rawBytes, "JPEG")
 	rawBytes.seek(0)
 	img_base64 = base64.b64encode(rawBytes.read())
-	return jsonify({'img': 'data:image/png;base64, ' + img_base64.decode('UTF-8')})
+
+	#print((time.time_ns() - start) / 1000000)
+	return jsonify({'img': 'data:image/png;base64, ' + img_base64.decode('UTF-8'), 'cur_x': img_cur_x, 'cur_y': img_cur_y })
 
 @app.route('/video_control', methods=['GET'])
 def video_control_get():
 	return render_template('video_control.html', browser=request.user_agent.browser, get_hashed_path=get_hashed_path)
+
+@app.route('/turn_off', methods=['GET'])
+def turn_off_get():
+	return render_template('turn_off.html', get_hashed_path=get_hashed_path)
 
 hashed_paths_cache: Dict[str, str] = {}
 files_cache: Dict[str, str] = {}
@@ -178,7 +213,9 @@ def calculate_md5_and_store(path: str):
 @app.route('/<dir_name>/<fname>')
 def send_js(dir_name, fname):
 	path = dir_name + '/' + fname
-	file = files_cache[path]
+	file = files_cache.get(path)
+	if file is None:
+		return send_from_directory(dir_name, fname)
 	return file
 
 def get_hashed_path(path):

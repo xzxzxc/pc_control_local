@@ -27,17 +27,21 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="img\cur.png" />
     <Content Include="js\buttons.js" />
     <Content Include="js\communication.js" />
     <Content Include="js\dispatcher.js" />
     <Content Include="js\hammer.min.js" />
     <Content Include="js\typing.js" />
+    <Content Include="js\videopipe.js" />
     <Content Include="local_server.bat" />
     <Content Include="log.txt" />
     <Content Include="README.md" />
     <Content Include="requirements.txt" />
     <Content Include="templates\buttons_base.html" />
-    <Content Include="templates\turnOff.html" />
+    <Content Include="templates\client.html" />
+    <Content Include="templates\server.html" />
+    <Content Include="templates\turn_off.html" />
     <Content Include="templates\video_control.html" />
   </ItemGroup>
   <ItemGroup>
@@ -47,6 +51,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="img\" />
     <Folder Include="js\" />
     <Folder Include="templates\" />
     <Folder Include="css\" />
