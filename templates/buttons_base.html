@@ -10,11 +10,12 @@
 	}
 	{% endfor %}
 	</style>
-	<script type="text/javascript" src="/js/communication.js"></script>
-	<script type="text/javascript" src="/js/dispatcher.js"></script>
-	<script type="text/javascript" src="/js/buttons.js"></script>
+	<script type="text/javascript" src="{{ get_hashed_path('/js/communication.js') }}"></script>
+	<script type="text/javascript" src="{{ get_hashed_path('/js/dispatcher.js') }}"></script>
+	<script type="text/javascript" src="{{ get_hashed_path('/js/buttons.js') }}"></script>
 	{% block head %}{% endblock %}
 	<link rel="icon" href="/favicon.ico" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
 	{% block content %}{% endblock %}

@@ -4,10 +4,13 @@ const Dispatcher = {
 	startedModules: [],
 	documentLoaded: false,
 	registerModule: function (container, dispatchFunc, interval, ...args) {
-		const dispatcher = (container, dispatchFunc, interval, args) => {
+		const dispatcher = async (container, dispatchFunc, interval, args) => {
 			const startDispatchTime = new Date().getTime();
 			try {
-				dispatchFunc(container, startDispatchTime, ...args);
+				if (dispatchFunc.constructor.name === "AsyncFunction")
+					await dispatchFunc(container, startDispatchTime, ...args);
+				else
+					dispatchFunc(container, startDispatchTime, ...args);
 			}
 			catch (error) {
 				console.log(error);
@@ -20,7 +23,7 @@ const Dispatcher = {
 			setTimeout(dispatcher, nextCallInterval, container, dispatchFunc, interval, args);
 		}
 		const module = { dispatcher, container, dispatchFunc, interval, args };
-		if (this.documentLoaded) {
+		if (!!this.documentLoaded) {
 			dispatcher(container, dispatchFunc, interval, args);
 			this.startedModules.push(module);
 		}

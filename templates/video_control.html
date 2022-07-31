@@ -6,14 +6,8 @@
 		display: block;
 	}
 	button {
-		display: block;
-		float: left;
 		text-align: center;
 		text-decoration: none;
-		width: 18vw;
-		padding: 0;
-		height: 10vh;
-		border-radius: 5px;
 		background-color: #f2f2f2;
 		filter: grayscale(100%);
 		-moz-user-select: none;
@@ -22,10 +16,19 @@
 		user-select: none;
 		-o-user-select: none;
 	}
+	.control-small-item {
+		width: 18vw;
+		padding: 0;
+		height: 10vh;
+		display: block;
+		float: left;
+		border-radius: 5px;
+	}
 	.main-btns {
 		max-height: 50vh;
 	}
-	.grid-btns {
+
+	.left-float-items {
 		display: grid;
 		float: left;
 	}
@@ -41,142 +44,213 @@
 		line-height: 50px;
 	}
 </style>
-<script type="text/javascript" src="/js/hammer.min.js"></script>
+<script type="text/javascript" src="http://hammerjs.github.io/dist/hammer.min.js"></script>
+<script type="text/javascript" src="{{ get_hashed_path('/js/typing.js') }}"></script>
 {% endblock %}
 {% block content %}
 <div class="main-btns">
-	<button class="f-s-5" data-keys="shift+p">
+	<button class="f-s-5 control-small-item" data-keys="shift+p">
 		Prev Vid
 	</button>
-	<button class="f-s-5" data-keys="j" data-interval="250">
+	<button class="f-s-5 control-small-item" data-keys="j" data-interval="250">
 		-10s
 	</button>
-	<button class="f-s-5 lh" data-keys="space">
+	<button class="f-s-5 lh control-small-item" data-keys="space">
 		⏸
 	</button>
-	<button class="f-s-5" data-keys="l" data-interval="250">
+	<button class="f-s-5 control-small-item" data-keys="l" data-interval="250">
 		+10s
 	</button>
-	<button class="f-s-6" data-keys="shift+n">
+	<button class="f-s-5 control-small-item" data-keys="shift+n">
 		Next Vid
 	</button>
-	<button class="f-s-10 lh" data-keys="ctrl+t">
+	<button class="f-s-10 lh control-small-item" data-keys="ctrl+t">
 		+
 	</button>
-	<button class="f-s-10 lh" data-keys="alt+d;alt+enter">
+	<button class="f-s-10 lh control-small-item" data-keys="alt+d;alt+enter">
 		⎘
 	</button>
-	<button class="f-s-3 lh" data-keys="up" data-interval="250">
+	<button class="f-s-3 lh control-small-item" data-keys="up" data-interval="250">
 		▲Vol
 	</button>
-	<button class="f-s-10 lh" data-keys="f">
+	<button class="f-s-10 lh control-small-item" data-keys="f">
 		{% if browser == 'safari' %}
 		✣
 		{% else %}
 		⛶
 		{% endif %}
 	</button>
-	<button class="f-s-2" data-cmd="chrome.exe https://www.youtube.com/">
+	<button class="f-s-2 control-small-item" data-cmd="chrome.exe https://www.youtube.com/">
 		You Tube
 	</button>
-	<button class="f-s-10 lh" data-keys="alt+left">
+	<button class="f-s-10 lh control-small-item" data-keys="alt+left">
 		←
 	</button>
-	<button class="f-s-3 lh" data-keys="left" data-interval="250">
+	<button class="f-s-3 lh control-small-item" data-keys="left" data-interval="250">
 		◀-5s
 	</button>
-	<button class="f-s-3 lh" data-keys="down" data-interval="250">
+	<button class="f-s-3 lh control-small-item" data-keys="down" data-interval="250">
 		▼Vol
 	</button>
-	<button class="f-s-3 lh" data-keys="right" data-interval="250">
+	<button class="f-s-3 lh control-small-item" data-keys="right" data-interval="250">
 		▶+5s
 	</button>
-	<button class="f-s-10 lh" data-keys="alt+right">
+	<button class="f-s-10 lh control-small-item" data-keys="alt+right">
 		→
 	</button>
-	<button class="f-s-10 lh" data-keys="ctrl+w">
+	<button class="f-s-10 lh control-small-item" data-keys="ctrl+w">
 		×
 	</button>
-	<button class="f-s-10 lh" data-keys="ctrl+r">
+	<button class="f-s-10 lh control-small-item" data-keys="ctrl+r">
 		↺
 	</button>
-	<button class="f-s-10 lh" data-keys="ctrl+shift+t">
+	<button class="f-s-10 lh control-small-item" data-keys="ctrl+shift+t">
 		✝
 	</button>
-	<button class="f-s-3" data-cmd="chrome.exe --profile-directory=Default">
+	<button class="f-s-3 control-small-item" data-cmd="chrome.exe --profile-directory=Default">
 		Open prof1
 	</button>
-	<button class="f-s-3" data-cmd="chrome.exe --profile-directory=&quot;Profile 1&quot;">
+	<button class="f-s-3 control-small-item" data-cmd="chrome.exe --profile-directory=&quot;Profile 1&quot;">
 		Open prof2
 	</button>
 </div>
 <div>
-	<div class="grid-btns">
-		<button class="f-s-5" data-keys="ctrl+tab">
+	<div class="left-float-items">
+		<button class="f-s-5  control-small-item" data-keys="ctrl+tab">
 			Next tab
 		</button>
-		<button class="f-s-10 lh" data-keys="volumeup" data-interval="150">
+		<button class="f-s-10 lh control-small-item" data-keys="volumeup" data-interval="150">
 			🔊
 		</button>
-		<button class="f-s-10 lh" data-keys="volumedown" data-interval="150">
+		<button class="f-s-10 lh control-small-item" data-keys="volumedown" data-interval="150">
 			🔉
 		</button>
+		<input id="typing-input" class="control-small-item" />
+		<input id="href-input" class="control-small-item" />
 	</div>
-	<div id="touch-bar" class="touch-bar"></div>
-	<!--<canvas id="touch-bar" class="touch-bar">
-		Your browser does not support canvas element.
-	</canvas>-->
+	<div id="touch-bar" class="touch-bar" style="position: relative;">
+		<img id="touch-bar-img" style="position: absolute;" />
+		<img id="touch-bar-cursor" src="/img/cur.png" style="position: relative;"/>
+	</div>
 </div>
 <script type="text/javascript">
 	"use strict";
 	const dispatchContainer = {};
 	const clearContainer = (container) => { container.scrolls = []; container.moves = []; container.click = null; container.doubleClick = null; container.rightClick = null; };
 	const copyMove = ({ deltaX, deltaY, timeStamp, deltaTime }) => ({ deltaX, deltaY, timeStamp, deltaTime });
+	const moveDispathInterval = 100, moveScale = 0.25, moveDuration = 0.005, scrollScale = 0.4;
+	const typingDispathInterval = 75;
+	const updateScreenshotInterval = 100;
+
+	const screenShotScale = 2;
 
 	const touchBarEl = document.getElementById('touch-bar');
-	const touchBarMg = new Hammer.Manager(touchBarEl);
+	const touchBarImg = document.getElementById('touch-bar-img');
+	const touchBarCur = document.getElementById('touch-bar-cursor');
 
-	touchBarMg.add(new Hammer.Tap({ event: 'doubletap', taps: 2, threshold: 5, posThreshold: 25 }));
-	touchBarMg.add(new Hammer.Tap({ event: 'twoFingersTap', pointers: 2, threshold: 5, posThreshold: 25 }));
-	touchBarMg.add(new Hammer.Tap({ event: 'singletap', threshold: 5, posThreshold: 25 }));
-	touchBarMg.add(new Hammer.Pan({ event: 'scroll', pointers: 2, threshold: 3, direction: Hammer.DIRECTION_HORIZONTAL }));
-	touchBarMg.add(new Hammer.Pan({ event: 'move', direction: Hammer.DIRECTION_ALL }));
+	const touchBarWidth = touchBarEl.clientWidth;
+	const touchBarHeight = touchBarEl.clientHeight;
 
-	// we want to recognize this simulatenous, so a quadrupletap will be detected even while a tap has been recognized.
-	touchBarMg.get('doubletap').recognizeWith('singletap');
-	// we only want to trigger a tap, when we don't have detected a doubletap
-	touchBarMg.get('singletap').requireFailure('doubletap');
+	let textTyper, hrefTyper;
+	let active = true;
 
-	touchBarMg.on("singletap", () => dispatchContainer.click = {});
-	touchBarMg.on("twoFingersTap", () => dispatchContainer.rightClick = {});
-	touchBarMg.on("doubletap", () => dispatchContainer.doubleClick = {});
-	touchBarMg.on("scroll", (ev) => dispatchContainer.scrolls.push(copyMove(ev)));
-	touchBarMg.on("move", (ev) => dispatchContainer.moves.push(copyMove(ev)));
+	window.addEventListener('focus', () => {
+		active = true;
+	});
 
-	const dispathTime = 100, moveScale = 0.25, moveTime = 0.005, scrollScale = 0.4, btnTime = 50;
-	const dispatchFunc = (container, startTime, clearContainer, post) => {
+	window.addEventListener('blur', () => {
+		active = false;
+	});
+
+
+	document.addEventListener('DOMContentLoaded', () => {
+		// touchbar staff
+		const touchBarMg = new Hammer.Manager(touchBarEl);
+
+		touchBarMg.add(new Hammer.Tap({ event: 'doubletap', taps: 2, threshold: 5, posThreshold: 25 }));
+		touchBarMg.add(new Hammer.Tap({ event: 'twoFingersTap', pointers: 2, threshold: 5, posThreshold: 25 }));
+		touchBarMg.add(new Hammer.Tap({ event: 'singletap', threshold: 5, posThreshold: 25 }));
+		touchBarMg.add(new Hammer.Pan({ event: 'scroll', pointers: 2, threshold: 3, direction: Hammer.DIRECTION_HORIZONTAL }));
+		touchBarMg.add(new Hammer.Pan({ event: 'move', direction: Hammer.DIRECTION_ALL }));
+
+		// we want to recognize this simulatenous, so a quadrupletap will be detected even while a tap has been recognized.
+		touchBarMg.get('doubletap').recognizeWith('singletap');
+		// we only want to trigger a tap, when we don't have detected a doubletap
+		touchBarMg.get('singletap').requireFailure('doubletap');
+
+		touchBarMg.on("singletap", () => dispatchContainer.click = {});
+		touchBarMg.on("twoFingersTap", () => dispatchContainer.rightClick = {});
+		touchBarMg.on("doubletap", () => dispatchContainer.doubleClick = {});
+		touchBarMg.on("scroll", (ev) => dispatchContainer.scrolls.push(copyMove(ev)));
+		touchBarMg.on("move", (ev) => dispatchContainer.moves.push(copyMove(ev)));
+
+		// typing input stuff
+		const textTypingInput = document.getElementById('typing-input');
+		const sendText = async (deletedCount, typedStr) => {
+			if (deletedCount > 0) {
+				await post(`/press`.getWithQueryParam('repeats', deletedCount), 'backspace');
+			}
+			if (typedStr) {
+				await post(`/type`, typedStr);
+			}
+		};
+		textTyper = new Typer(textTypingInput, sendText, typingDispathInterval);
+
+		const hrefTypingInput = document.getElementById('href-input');
+		const sendHref = async (deletedCount, typedStr) => {
+			if (typedStr) {
+				await post(`/cmd`, `chrome.exe ${typedStr}`);
+			}
+		};
+		hrefTyper = new Typer(hrefTypingInput, sendHref, typingDispathInterval);
+	});
+
+	const dispatchFunc = async (container, startTime, clearContainer, post) => {
 		if (container.doubleClick) {
-			post('/click?count=2');
+			await post('/click?count=2');
 		}
 		else if (container.rightClick) {
-			post('/click?button=right');
+			await post('/click?button=right');
 		}
 		else if (container.click) {
-			post('/click');
+			await post('/click');
 		}
 		else if (container.moves.length > 0) {
 			const delta = { x: 0, y: 0 };
 			container.moves.forEach((m) => { delta.x += m.deltaX; delta.y += m.deltaY; });
-			post(`/move?deltaX=${moveScale * delta.x}&deltaY=${moveScale * delta.y}&duration=${moveTime}`);
+			await post(`/move?deltaX=${moveScale * delta.x}&deltaY=${moveScale * delta.y}&duration=${moveDuration}`);
 		}
 		else if (container.scrolls.length > 0) {
 			const deltaY = container.scrolls.reduce((pv, cm) => pv + cm.deltaY, 0);
-			post(`/scroll?deltaY=${scrollScale * deltaY}`);
+			await post(`/scroll?deltaY=${scrollScale * deltaY}`);
 		}
 		clearContainer(container);
 	}
 	clearContainer(dispatchContainer);
-	Dispatcher.registerModule(dispatchContainer, dispatchFunc, dispathTime, clearContainer, post);
+	Dispatcher.registerModule(dispatchContainer, dispatchFunc, moveDispathInterval, clearContainer, post);
+
+	const updateTouchBarImg = async (container, startTime, touchBarImg, touchBarEl) => {
+		if (!active)
+			return;
+		var screenshot = await get(`/screnshot?` +
+			`width=${Math.trunc(screenShotScale * touchBarEl.clientWidth)}&heigth=${Math.trunc(screenShotScale * touchBarEl.clientHeight)}`);
+		if (screenshot === null)
+			return;
+		touchBarImg.setAttribute('src', screenshot['img']);
+		//const scale = 1 / (2 * screenShotScale);
+		//touchBarImg.setAttribute('style',
+		//	`-webkit-transform: scale(${scale}); -moz-transform: scale(${scale}); -ms-transform: scale(${scale
+		//	}); -o-transform: scale(${scale}); transform: scale(${scale});`);
+		//touchBarImg.setAttribute('width', 100 / (2 * screenShotScale) + '%');
+		//touchBarImg.setAttribute('height', 100 / (2 * screenShotScale) + '%');
+		touchBarImg.setAttribute('width', touchBarEl.clientWidth + 'px');
+		touchBarImg.setAttribute('height', touchBarEl.clientHeight + 'px');
+		touchBarCur.setAttribute('style', 'position: relative; left: '
+			+ (screenshot['cur_x'] / (screenShotScale)) + 'px; top: '
+			+ (screenshot['cur_y'] / (screenShotScale)) + 'px');
+	}
+
+	Dispatcher.registerModule(dispatchContainer, updateTouchBarImg, updateScreenshotInterval, touchBarImg, touchBarEl);
 
 	{% if browser == 'safari' %}
 	// disable scaling for safary

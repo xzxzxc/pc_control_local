@@ -2,21 +2,27 @@
 !function () {
 	const dispatchContainer = { dispatchedOnce: true };
 	const clearContainer = (container) => { container.ended = true; }
+	const dispathTime = 100, defInterval = 1000, delay = 50;
 	const setBtn = (container, btn) => {
 		container.action = btn.getAttribute('data-action'); container.cmd = btn.getAttribute('data-cmd');
 		container.keys = btn.getAttribute('data-keys'); container.interval = btn.getAttribute('data-interval');
 		container.ended = false; container.start = new Date().getTime();
 		container.dispatchedOnce = false;
 	};
-	const replaceAll = (str, search, replace) => str.split(search).join(replace);
 	const getAction = (container) => {
-		if (container.action)
-			return container.action;
-		if (container.cmd)
-			return '/cmd/' + container.cmd;
-		if (container.keys)
-			return `/press?keys=${replaceAll(container.keys, '+', '%2B')}`;
-		return null;
+		let action, body;
+		if (container.action) {
+			action = container.action;
+		}
+		if (container.cmd) {
+			action = '/cmd';
+			body = container.cmd;
+		}
+		if (container.keys) {
+			action = `/press`;
+			body = container.keys;
+		}
+		return { action, body };
 	}
 	const touchStart = function () {
 		setBtn(dispatchContainer, this);
@@ -33,11 +39,11 @@
 			});
 	});
 	const suportsRepeats = (act) => act.startsWith('/press?keys');
-	const dispathTime = 100, defInterval = 1000;
-	const dispatchFunc = (container, startTime, getAction, suportsRepeats) => {
+
+	const dispatchFunc = async (container, startTime, getAction, suportsRepeats, post) => {
 		if (container.ended && container.dispatchedOnce)
 			return;
-		const action = getAction(container);
+		const { action, body } = getAction(container);
 		if (!action)
 			return;
 		let interval = container.interval;
@@ -49,21 +55,25 @@
 			repeats = Math.floor(diff / interval);
 		}
 		else if (!container.dispatchedOnce) {
-			repeats = 1;
+			if (diff > delay)
+				repeats = 1;
+			else
+				repeats = 0;
 		}
 		if (repeats === 0)
 			return;
 		container.dispatchedOnce = true;
 		if (repeats === 1) {
-			post(action);
+			await post(action, body);
 			return;
 		}
 		if (suportsRepeats(action)) {
-			post(action + '&repeats=' + repeats);
+			action = action.getWithQueryParam('repeats', repeats);
+			await post(action, body);
 		}
 		else {
 			for (let j = 0; j < repeats; j++) {
-				post(action);
+				await post(action, body);
 			}
 		}
 	}

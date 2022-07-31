@@ -340,6 +340,7 @@ ASALocalRun/
 healthchecksdb
 
 favicon.ico
+apple-touch-icon.png
 js/hammer.min.js
 cur.cur
 log.txt
